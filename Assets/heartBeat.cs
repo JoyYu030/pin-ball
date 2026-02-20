@@ -13,7 +13,8 @@ public class heartBeat: MonoBehaviour
     [SerializeField] private float bpmAddPerHit = 8f;
     [SerializeField] private float strengthAddPerHit = 0.02f;
 
-
+    [SerializeField] private AudioClip normal;
+    [SerializeField] private AudioClip explode;
     private float calmDelay = 5f;     
      private float calmSmooth = 3f;      
 
@@ -25,18 +26,21 @@ public class heartBeat: MonoBehaviour
     private float lastHitTime = -999f;
     private float maxTimer = 0f;
 
-    private float maxHoldTime = 5f;
+    private float maxHoldTime = 1f;
     private Vector3 baseScale;
-
+    
     void Start()
     {
+        GetComponent<AudioSource>().clip = normal;
         baseScale = transform.localScale;
         currentBpm = baseBpm;
         currentStrength = baseStrength;
+        
     }
 
     void Update()
     {
+        
         bool shouldCalm = Time.time - lastHitTime >= calmDelay;
 
         if (shouldCalm)
@@ -65,10 +69,12 @@ public class heartBeat: MonoBehaviour
 
             if (maxTimer >= maxHoldTime)
             {
+                GetComponent<AudioSource>().clip = explode;
                 GetComponent<AudioSource>().Play();
-                gameObject.SetActive(false);
+                Invoke(nameof(Explode), 1.0f); 
                 
-                return;
+                
+                // return;
             }
         }
         else
@@ -77,16 +83,25 @@ public class heartBeat: MonoBehaviour
         }
     }
 
+    void Explode()
+    {
+        gameObject.SetActive(false);
+    }
     
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Ball"))
+        {
+            GetComponent<AudioSource>().clip = normal;
+            GetComponent<AudioSource>().Play();
             OnBallHit();
+        }
     }
 
 
     private void OnBallHit()
     {
+        
         lastHitTime = Time.time;
 
         currentBpm = Mathf.Min(maxBpm, currentBpm + bpmAddPerHit);

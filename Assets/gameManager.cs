@@ -9,7 +9,7 @@ public class gameManager : MonoBehaviour
     public static gameManager Instance;
 
     [SerializeField] private TMP_Text scoreText;
-    [SerializeField] private TMP_Text restartText; 
+    //[SerializeField] private TMP_Text restartText; 
     private int currentScore;     // real score
     private float displayScore;   // animated score
 
@@ -18,7 +18,7 @@ public class gameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        restartText.text = "Press R to Revive";
+        
     }
 
     void Update()
@@ -36,7 +36,7 @@ public class gameManager : MonoBehaviour
                 countSpeed * Time.deltaTime
             );
 
-            scoreText.text = $"Score: {(int)displayScore}";
+            scoreText.text = $"Pain Indicator: {(int)displayScore}";
         }
     }
 

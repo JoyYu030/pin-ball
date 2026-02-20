@@ -1,89 +1,78 @@
-
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class rightTrigger : MonoBehaviour
 {
-    private Rigidbody2D rb;
-    private float rotateSpeed = 200f;
-    private float returnSpeed = 200f;
-    private bool canRotate = true;
-    private bool reachedTop = false; 
+    [SerializeField] private KeyCode key = KeyCode.D;
 
-    private float restAngle;
-     private HingeJoint2D hinge;
-    private bool startFalling = false;
-    // Start is called before the first frame update
+    [SerializeField] private float flipSpeed = 1200f;      // motor speed when flipping
+    [SerializeField] private float returnSpeed = 800f;     // motor speed when returning
+    [SerializeField] private float maxMotorTorque = 20000f;
+
+    [SerializeField] private float angleEpsilon = 1.0f;    // stop when close to target
+
+    private HingeJoint2D hinge;
+    private Rigidbody2D rb;
+
+    private float restAngle;   
+    private float upAngle;  
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         hinge = GetComponent<HingeJoint2D>();
-    }
-    void Start()
-    {
-        Debug.Log(hinge.jointAngle);
-        restAngle = hinge.jointAngle; 
+
+        JointAngleLimits2D lim = hinge.limits;
+        restAngle = lim.min;  
+        upAngle = lim.max;   
+
+        hinge.useMotor = true;
+
+        
+        JointMotor2D m = hinge.motor;
+        m.maxMotorTorque = maxMotorTorque;
+        hinge.motor = m;
+
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        rb.angularDrag = 4f;
     }
 
     void FixedUpdate()
     {
-       
-        float maxLimit = hinge.limits.max;
+        bool pressed = Input.GetKey(key);
 
-        float currentAngle = hinge.jointAngle;
+        float targetAngle;
+        float speedMag;
 
-        float targetAngle = restAngle;
-
-         
-        JointMotor2D motor = hinge.motor;
-
-       
-        if (Mathf.Abs(currentAngle - targetAngle) > 1f)// decide which direction to rotate
+        if (pressed)
         {
-            if (currentAngle > targetAngle)
-            {
-                
-                motor.motorSpeed = -returnSpeed;
-            }
-            else
-            {
-                motor.motorSpeed = returnSpeed;
-            }
-            hinge.motor = motor;
+            targetAngle = upAngle;
+            speedMag = flipSpeed;
         }
         else
         {
+            targetAngle = restAngle;
+            speedMag = returnSpeed;
+        }
+
+        float currentAngle = hinge.jointAngle;
+        float diff = targetAngle - currentAngle;
+
+        JointMotor2D motor = hinge.motor;
+
+        // If close enough, stop motor (prevents buzzing)
+        if (Mathf.Abs(diff) <= angleEpsilon)
+        {
             motor.motorSpeed = 0f;
             hinge.motor = motor;
-            if (currentAngle <= 1f && Mathf.Abs(rb.angularVelocity) < 5f )//&& reachedTop)
-            {
-                canRotate = true;
-               // reachedTop = false;
-            }   
-        
+            return;
         }
-        
-        
 
-    }
+        if (diff > 0f)
+            motor.motorSpeed = speedMag;
+        else
+            motor.motorSpeed = -speedMag;
 
-    // Update is called once per frame
-    void Update()
-    {
-        if(canRotate)
-        {
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                 rb.AddTorque(-rotateSpeed, ForceMode2D.Impulse);
-                // rb.AddForce(rotateForce * Vector2.right, ForceMode2D.Impulse);
-                canRotate = false;
-            }
-        }
-        
-        
+        hinge.motor = motor;
     }
 }
-
-
-//SceneManager.LoadScene(SceneManager.GetActiveScene().name);-> reload the scene we are currently in.

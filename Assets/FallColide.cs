@@ -20,6 +20,7 @@ public class FallColide : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        GetComponent<AudioSource>().Play();
         //ChangeColor();
         collision.rigidbody.AddForce(forceValue * Vector2.up, ForceMode2D.Impulse);// impulse: instant force
         // gameObject.SetActive(false);

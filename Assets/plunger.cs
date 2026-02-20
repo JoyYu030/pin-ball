@@ -57,7 +57,7 @@ public class plunger : MonoBehaviour
             charging = false;
             holdingBall = false;
             launched = true;
-
+            GetComponent<AudioSource>().Play();
             ballRb.gravityScale = 1.0f;//ballOriginalGravity;
 
             float speed = Mathf.Lerp(minSpeed, maxSpeed, charge01);
